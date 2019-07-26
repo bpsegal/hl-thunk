@@ -44,11 +44,19 @@ struct packet_nop {
 	__u32 reserved;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32:24;
 			__u32 opcode :5;
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1;
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:24;
+#endif
 		};
 		__u32 ctl;
 	};
@@ -58,11 +66,19 @@ struct packet_stop {
 	__u32 reserved;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32:24;
 			__u32 opcode :5;
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1; /* must be 0 */
 			__u32 msg_barrier :1; /* must be 0 */
+#else //mirror image for BE systems
+			__u32 msg_barrier :1; /* must be 0 */
+			__u32 reg_barrier :1; /* must be 0 */
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:24;
+#endif
 		};
 		__u32 ctl;
 	};
@@ -72,6 +88,7 @@ struct packet_wreg32 {
 	__u32 value;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 reg_offset :16;
 			__u32:7;
 			__u32 local :1; /* 0: write to TCL regs,
@@ -81,20 +98,55 @@ struct packet_wreg32 {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1; /* must be 1 */
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1; /* must be 1 */
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32 local :1; /* 0: write to TCL regs,
+					 * 1: write to CMDQ regs
+					 */
+			__u32:7;
+			__u32 reg_offset :16;
+#endif
 		};
 		__u32 ctl;
 	};
 };
 
 struct packet_wreg_bulk {
-	__u32 size64 :16;
-	__u32:16;
-	__u32 reg_offset :16;
-	__u32:8;
-	__u32 opcode :5;
-	__u32 eng_barrier :1;
-	__u32 reg_barrier :1; /* must be 1 */
-	__u32 msg_barrier :1;
+	union {
+		struct {
+#ifndef __BIG_ENDIAN
+			__u32 size64 :16;
+			__u32:16;
+#else //mirror image for BE systems
+			__u32:16;
+			__u32 size64 :16;
+#endif
+		};
+		__u32 __size64;
+	};
+	union {
+		struct {
+#ifndef __BIG_ENDIAN
+			__u32 reg_offset :16;
+			__u32:8;
+			__u32 opcode :5;
+			__u32 eng_barrier :1;
+			__u32 reg_barrier :1; /* must be 1 */
+			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1; /* must be 1 */
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:8;
+			__u32 reg_offset :16;
+#endif
+		};
+		__u32 ctl;
+	};
 	__u64 values[0]; /* data starts here */
 };
 
@@ -102,6 +154,7 @@ struct packet_msg_long {
 	__u32 value;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32:16;
 			__u32 weakly_ordered :1;
 			__u32 no_snoop :1;
@@ -112,6 +165,18 @@ struct packet_msg_long {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1;
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:2;
+			__u32 op :2; /* 0: write <value>. 1: write timestamp. */
+			__u32:2;
+			__u32 no_snoop :1;
+			__u32 weakly_ordered :1;
+			__u32:16;
+#endif
 		};
 		__u32 ctl;
 	};
@@ -121,20 +186,34 @@ struct packet_msg_long {
 struct packet_msg_short {
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 sync_id :10;
 			__u32:5;
 			__u32 mode : 1;
 			__u32 sync_value :16;
+#else //mirror image for BE systems
+			__u32 sync_value :16;
+			__u32 mode : 1;
+			__u32:5;
+			__u32 sync_id :10;
+#endif
 		} mon_arm_register;
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 sync_value :16;
 			__u32:15;
 			__u32 mode :1;
+#else //mirror image for BE systems
+			__u32 mode :1;
+			__u32:15;
+			__u32 sync_value :16;
+#endif
 		} so_upd;
 		__u32 value;
 	};
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 msg_addr_offset :16;
 			__u32 weakly_ordered :1;
 			__u32 no_snoop :1;
@@ -145,6 +224,18 @@ struct packet_msg_short {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1;
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32 base :2;
+			__u32 op :2;
+			__u32:2;
+			__u32 no_snoop :1;
+			__u32 weakly_ordered :1;
+			__u32 msg_addr_offset :16;
+#endif
 		};
 		__u32 ctl;
 	};
@@ -154,6 +245,7 @@ struct packet_msg_prot {
 	__u32 value;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32:16;
 			__u32 weakly_ordered :1;
 			__u32 no_snoop :1;
@@ -164,6 +256,18 @@ struct packet_msg_prot {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1;
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:2;
+			__u32 op :2; /* 0: write <value>. 1: write timestamp. */
+			__u32:2;
+			__u32 no_snoop :1;
+			__u32 weakly_ordered :1;
+			__u32:16;
+#endif
 		};
 		__u32 ctl;
 	};
@@ -171,22 +275,49 @@ struct packet_msg_prot {
 };
 
 struct packet_fence {
-	__u32 dec_val :4;
-	__u32:12;
-	__u32 gate_val :8;
-	__u32:6;
-	__u32 id :2;
-	__u32:24;
-	__u32 opcode :5;
-	__u32 eng_barrier :1;
-	__u32 reg_barrier :1;
-	__u32 msg_barrier :1;
+	union {
+		struct {
+#ifndef __BIG_ENDIAN
+			__u32 dec_val :4;
+			__u32:12;
+			__u32 gate_val :8;
+			__u32:6;
+			__u32 id :2;
+#else //mirror image for BE systems
+			__u32 id :2;
+			__u32:6;
+			__u32 gate_val :8;
+			__u32:12;
+			__u32 dec_val :4;
+#endif
+		};
+		__u32 cfg;
+	};
+	union {
+		struct {
+#ifndef __BIG_ENDIAN
+			__u32:24;
+			__u32 opcode :5;
+			__u32 eng_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1;
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:24;
+#endif
+		};
+		__u32 ctl;
+	};
 };
 
 struct packet_lin_dma {
 	__u32 tsize;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 weakly_ordered :1; /* H/W bug, must be 1 */
 			__u32 rdcomp :1;
 			__u32 wrcomp :1;
@@ -202,6 +333,23 @@ struct packet_lin_dma {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1; /* must be 1 */
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1; /* must be 1 */
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:1;
+			__u32 dma_dir :3; /* S/W only, no effect on HW */
+			__u32 cntrl :12;
+			__u32 tensor_dma :1; /* N/A, must be 0 */
+			__u32 memset_mode :1;
+			__u32 dst_disable :1;
+			__u32 src_disable :1;
+			__u32 no_snoop :1;
+			__u32 wrcomp :1;
+			__u32 rdcomp :1;
+			__u32 weakly_ordered :1; /* H/W bug, must be 1 */
+#endif
 		};
 		__u32 ctl;
 	};
@@ -213,6 +361,7 @@ struct packet_cp_dma {
 	__u32 tsize;
 	union {
 		struct {
+#ifndef __BIG_ENDIAN
 			__u32 weakly_ordered :1;
 			__u32 no_snoop :1;
 			__u32:22;
@@ -220,6 +369,15 @@ struct packet_cp_dma {
 			__u32 eng_barrier :1;
 			__u32 reg_barrier :1; /* must be 1 */
 			__u32 msg_barrier :1;
+#else //mirror image for BE systems
+			__u32 msg_barrier :1;
+			__u32 reg_barrier :1; /* must be 1 */
+			__u32 eng_barrier :1;
+			__u32 opcode :5;
+			__u32:22;
+			__u32 no_snoop :1;
+			__u32 weakly_ordered :1;
+#endif
 		};
 		__u32 ctl;
 	};
