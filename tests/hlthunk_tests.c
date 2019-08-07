@@ -620,7 +620,8 @@ int hltests_root_teardown(void **state)
 
 static void *allocate_huge_mem(uint64_t size)
 {
-	int mmapFlags = MAP_HUGE_2MB | MAP_HUGETLB | MAP_SHARED | MAP_ANONYMOUS;
+	//int mmapFlags = MAP_HUGE_2MB | MAP_HUGETLB | MAP_SHARED | MAP_ANONYMOUS;
+	int mmapFlags = MAP_SHARED | MAP_ANONYMOUS;
 	int prot = PROT_READ | PROT_WRITE;
 	void *vaddr;
 
